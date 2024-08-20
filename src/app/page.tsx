@@ -1,98 +1,154 @@
-import Image from "next/image";
-import { ConnectButton } from "thirdweb/react";
-import thirdwebIcon from "@public/thirdweb.svg";
-import { client } from "./client";
+'use client'
+import { ConnectButton, MediaRenderer, useActiveAccount } from "thirdweb/react";
+
+
+import { createThirdwebClient } from "thirdweb";
+import { useDebugValue, useEffect, useState } from "react";
+
 
 export default function Home() {
-  return (
-    <main className="p-4 pb-10 min-h-[100vh] flex items-center justify-center container max-w-screen-lg mx-auto">
-      <div className="py-20">
-        <Header />
 
-        <div className="flex justify-center mb-20">
-          <ConnectButton
-            client={client}
-            appMetadata={{
-              name: "Example App",
-              url: "https://example.com",
-            }}
-          />
+  const clientKey = createThirdwebClient({ clientId: "6286cdbab8418c560821c54f73f592f2" })
+  const account = useActiveAccount()
+  const chainID = process.env.NEXT_PUBLIC_CHAIN!
+  const nftDropContractAddress = process.env.NEXT_PUBLIC_NFT_DRROP_CONTRACT_ADDRESS!
+  const tokenAddress = process.env.NEXT_PUBLIC_ERC_20_TOKEN_ADDRESS
+  const backendWalletAddress = process.env.NEXT_PUBLIC_ENGINE_BACKEND_WALLET!
+  const engingAccessToken = process.env.NEXT_PUBLIC_ENGINE_ACCESS_TOKEN!
+  const engineURL = process.env.NEXT_PUBLIC_ENGINE_URL!
+
+  const [numClicked, setNumClicked] = useState(0)
+  const [owned, setOwned] = useState(false)
+  const [nft, setNFT] = useState()
+  const [erc20Tokens,setERC20Tokens] = useState()
+
+  const increment = () => {
+    let num = numClicked;
+    num++
+    setNumClicked(num)
+
+    fetch(`${engineURL}contract/${chainID}/${tokenAddress}/erc20/claim-to`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${engingAccessToken}`,
+          "x-backend-wallet-address": backendWalletAddress,
+        },
+        body: JSON.stringify({
+          recipient: account?.address!,
+          amount: "1",
+        }),
+      },
+    );
+  }
+
+  const fetchGatedBalance = async () => {
+    const resp = await fetch(
+      `${engineURL}contract/${chainID}/${nftDropContractAddress}/erc721/get-owned?walletAddress=${account?.address}`,
+      {
+        headers: {
+          authorization: `Bearer ${engingAccessToken}`,
+        },
+      },
+    );
+
+    const { result } = await resp.json();
+    if (result) {
+      setOwned(true)
+      setNFT(result[0].metadata.image)
+    }
+    else {
+      console.log("undefined")
+    }
+
+  }
+
+  const getERC20TokenBalence = async () =>{
+    const resp = await fetch(
+      `${engineURL}contract/${chainID}/${tokenAddress}/erc20/balance-of?wallet_address=${account?.address}`,
+      {
+        headers:{
+          authorization: `Bearer ${engingAccessToken}`,
+        },
+      },
+    );
+    const { result } = await resp.json();
+
+    if(result){
+      setERC20Tokens(result.displayValue)
+    }
+  }
+
+  const mint = async () => {
+    const resp = await fetch(`${engineURL}contract/${chainID}/${nftDropContractAddress}/erc721/claim-to`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${engingAccessToken}`,
+          "x-backend-wallet-address": `${backendWalletAddress}`,
+        },
+        body: JSON.stringify({
+          receiver: account?.address!,
+          quantity: "1",
+        }),
+      },
+    );
+  }
+
+  useEffect(() => {
+    if (account) {
+      fetchGatedBalance()
+      
+    }
+  })
+
+  useEffect(() =>{
+    if (account) {
+      getERC20TokenBalence()
+    }
+  },[numClicked])
+  return (
+    <div>
+      <ConnectButton client={clientKey} />
+
+      {owned ? (
+        <div>
+          <div>
+            Tokens Owned: {erc20Tokens}
+          </div>
+          <div className="flex-row pt-20 bg-slate-600" onClick={() => increment()}>
+
+            <div>
+              <MediaRenderer client={clientKey} src={nft}>
+
+              </MediaRenderer>
+            </div>
+
+            {/* <button onClick={()=>increment()}>Click Me</button> */}
+            <div>
+              Number of times clicked:{numClicked}
+            </div>
+          </div>
+          <div>
+            <div>
+              <button onClick={() => {getERC20TokenBalence();setNumClicked(0)}}>Reset Count</button>
+            </div>
+
+            <div>
+              <button>Redeem</button>
+            </div>
+          </div>
         </div>
-
-        <ThirdwebResources />
-      </div>
-    </main>
-  );
-}
-
-function Header() {
-  return (
-    <header className="flex flex-col items-center mb-20 md:mb-20">
-      <Image
-        src={thirdwebIcon}
-        alt=""
-        className="size-[150px] md:size-[150px]"
-        style={{
-          filter: "drop-shadow(0px 0px 24px #a726a9a8)",
-        }}
-      />
-
-      <h1 className="text-2xl md:text-6xl font-semibold md:font-bold tracking-tighter mb-6 text-zinc-100">
-        thirdweb SDK
-        <span className="text-zinc-300 inline-block mx-1"> + </span>
-        <span className="inline-block -skew-x-6 text-blue-500"> Next.js </span>
-      </h1>
-
-      <p className="text-zinc-300 text-base">
-        Read the{" "}
-        <code className="bg-zinc-800 text-zinc-300 px-2 rounded py-1 text-sm mx-1">
-          README.md
-        </code>{" "}
-        file to get started.
-      </p>
-    </header>
-  );
-}
-
-function ThirdwebResources() {
-  return (
-    <div className="grid gap-4 lg:grid-cols-3 justify-center">
-      <ArticleCard
-        title="thirdweb SDK Docs"
-        href="https://portal.thirdweb.com/typescript/v5"
-        description="thirdweb TypeScript SDK documentation"
-      />
-
-      <ArticleCard
-        title="Components and Hooks"
-        href="https://portal.thirdweb.com/typescript/v5/react"
-        description="Learn about the thirdweb React components and hooks in thirdweb SDK"
-      />
-
-      <ArticleCard
-        title="thirdweb Dashboard"
-        href="https://thirdweb.com/dashboard"
-        description="Deploy, configure, and manage your smart contracts from the dashboard."
-      />
+      ) :
+        (
+          <div>
+            <button onClick={() => mint()}>Mint your pass</button>
+          </div>
+        )}
     </div>
-  );
+  )
 }
 
-function ArticleCard(props: {
-  title: string;
-  href: string;
-  description: string;
-}) {
-  return (
-    <a
-      href={props.href + "?utm_source=next-template"}
-      target="_blank"
-      className="flex flex-col border border-zinc-800 p-4 rounded-lg hover:bg-zinc-900 transition-colors hover:border-zinc-700"
-    >
-      <article>
-        <h2 className="text-lg font-semibold mb-2">{props.title}</h2>
-        <p className="text-sm text-zinc-400">{props.description}</p>
-      </article>
-    </a>
-  );
-}
+
