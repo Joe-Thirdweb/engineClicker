@@ -52,7 +52,8 @@ export default function Home() {
     );
 
     const { result } = await resp.json();
-    if (result) {
+    console.log(result)
+    if (result && result.length > 0) {
       setOwned(true)
       setNFT(result[0].metadata.image)
     }
