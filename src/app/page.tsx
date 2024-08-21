@@ -1,10 +1,8 @@
 'use client'
 import { ConnectButton, MediaRenderer, useActiveAccount } from "thirdweb/react";
-
-
 import { createThirdwebClient } from "thirdweb";
 import { useDebugValue, useEffect, useState } from "react";
-
+//testing signature mint
 
 export default function Home() {
 
