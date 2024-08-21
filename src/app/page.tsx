@@ -1,8 +1,10 @@
 'use client'
 import { ConnectButton, MediaRenderer, useActiveAccount } from "thirdweb/react";
+
+
 import { createThirdwebClient } from "thirdweb";
 import { useDebugValue, useEffect, useState } from "react";
-//testing signature mint
+
 
 export default function Home() {
 
@@ -49,6 +51,7 @@ export default function Home() {
           authorization: `Bearer ${engingAccessToken}`,
         },
       },
+
     );
 
     const { result } = await resp.json();
