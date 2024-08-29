@@ -16,7 +16,7 @@ export default function Home() {
     process.env.NEXT_PUBLIC_NFT_DRROP_CONTRACT_ADDRESS!;
   const tokenAddress = process.env.NEXT_PUBLIC_ERC_20_TOKEN_ADDRESS;
   const backendWalletAddress = process.env.NEXT_PUBLIC_ENGINE_BACKEND_WALLET!;
-  const engingAccessToken = process.env.NEXT_PUBLIC_ENGINE_ACCESS_TOKEN!;
+  const engingAccessToken = process.env.ENGINE_ACCESS_TOKEN!;
   const engineURL = process.env.NEXT_PUBLIC_ENGINE_URL!;
   const webhook = process.env.NEXT_PUBLIC_WEBHOOK_SECRET!;
 
@@ -102,10 +102,13 @@ export default function Home() {
     );
   };
 
-  const isNewData = (existingData: any[], newData: { queueId: any; status: any }) => {
-    return !existingData.some((item) => 
-      item.queueId === newData.queueId && item.status === newData.status
-    );
+  const isNewData = (existingData: any[], newData: { queueId: any; status: any; toAddress:string }) => {
+    if(newData.toAddress === backendWalletAddress){
+      return !existingData.some((item) => 
+        item.queueId === newData.queueId && item.status === newData.status
+      );
+    }
+   
   };
 
   useEffect(() => {
@@ -127,10 +130,9 @@ export default function Home() {
         });
         const result = await response.json();
 
-        if (result) {
+        if (result && result.toAddress === backendWalletAddress) {
           setData((prevData) => {
             if (firstRunRef.current) {
-              console.log("first run");
               firstRunRef.current = false;
               return [result];
             } else {
@@ -151,7 +153,7 @@ export default function Home() {
     };
 
     // Fetch data every 10 seconds
-    const intervalId = setInterval(fetchWebhookData, 10000);
+    const intervalId = setInterval(fetchWebhookData, 1000);
 
     // Clean up on component unmount
     return () => clearInterval(intervalId);
@@ -182,12 +184,10 @@ export default function Home() {
             <div>
               <MediaRenderer client={clientKey} src={nft}></MediaRenderer>
             </div>
-
-            {/* <button onClick={()=>increment()}>Click Me</button> */}
-            <div>Number of times clicked:{numClicked}</div>
           </div>
           <div>
             <div>
+            <div className="pt-12">Number of times clicked:{numClicked}</div>
               <button
                 onClick={() => {
                   getERC20TokenBalence();
@@ -198,9 +198,6 @@ export default function Home() {
               </button>
             </div>
 
-            <div>
-              <button>Redeem</button>
-            </div>
           </div>
         </div>
       ) : (
@@ -209,7 +206,7 @@ export default function Home() {
         </div>
       )}
 
-      <div>Transactions</div>
+      <div className="pt-10 text-xl">Transactions List (Polls Every Second): </div>
       {data.length > 0 ? <TwoColumnTable data={data} /> : <div></div>}
     </div>
   );
