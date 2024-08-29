@@ -2,7 +2,7 @@
 import { ConnectButton, MediaRenderer, useActiveAccount } from "thirdweb/react";
 
 import { createThirdwebClient } from "thirdweb";
-import { useDebugValue, useEffect, useState } from "react";
+import { useDebugValue, useEffect, useRef, useState } from "react";
 
 import { generateSignature } from "../lib/webhookhelper";
 
@@ -25,7 +25,8 @@ export default function Home() {
   const [nft, setNFT] = useState();
   const [erc20Tokens, setERC20Tokens] = useState();
 
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<object[]>([]);
+  const firstRunRef = useRef(true);
   const [error, setError] = useState(null);
 
   const increment = () => {
@@ -101,6 +102,12 @@ export default function Home() {
     );
   };
 
+  const isNewData = (existingData: any[], newData: { queueId: any; status: any }) => {
+    return !existingData.some((item) => 
+      item.queueId === newData.queueId && item.status === newData.status
+    );
+  };
+
   useEffect(() => {
     const fetchWebhookData = async () => {
       try {
@@ -110,22 +117,34 @@ export default function Home() {
           timestamp.toString(),
           webhook
         );
-        console.log(signature)
         const response = await fetch("/api/webhook", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-engine-signature": signature,
-            "x-engine-timestamp": timestamp.toString(),
-          },
+          method: "GET",
+          // headers: {
+          //   "Content-Type": "application/json",
+          //   "x-engine-signature": signature,
+          //   "x-engine-timestamp": timestamp.toString(),
+          // },
         });
-        if (!response.ok) {
-          throw new Error("Failed to fetch");
-        }
         const result = await response.json();
-        console.log("This is the result: ", result);
-        console.log(result);
-        setData(result);
+
+        if (result) {
+          setData((prevData) => {
+            if (firstRunRef.current) {
+              console.log("first run");
+              firstRunRef.current = false;
+              return [result];
+            } else {
+              console.log("checking for new data");
+              if (isNewData(prevData, result)) {
+                console.log("new data found, appending");
+                return [...prevData, result];
+              } else {
+                console.log("data already exists, not appending");
+                return prevData;
+              }
+            }
+          });
+        }
       } catch (err: any) {
         setError(err.message);
       }
@@ -189,6 +208,36 @@ export default function Home() {
           <button onClick={() => mint()}>Mint your pass</button>
         </div>
       )}
+
+      <div>Transactions</div>
+      {data.length > 0 ? <TwoColumnTable data={data} /> : <div></div>}
     </div>
   );
 }
+
+const TwoColumnTable = (data: any) => {
+  console.log(data);
+  console.log(typeof data);
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full ">
+        <thead>
+          <tr>
+            <th className="py-2 px-4 border-b text-left">Status</th>
+            <th className="py-2 px-4 border-b text-left">Queue ID</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.data &&
+            data.data.map((item: any, index: number) => (
+              <tr key={item.queueId || index}>
+                <td className="py-2 px-4 border-b">{item.status || "N/A"}</td>
+                <td className="py-2 px-4 border-b">{item.queueId || "N/A"}</td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
