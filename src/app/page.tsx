@@ -18,7 +18,7 @@ export default function Home() {
   const backendWalletAddress = process.env.NEXT_PUBLIC_ENGINE_BACKEND_WALLET!;
   const engingAccessToken = process.env.ENGINE_ACCESS_TOKEN!;
   const engineURL = process.env.NEXT_PUBLIC_ENGINE_URL!;
-  const webhook = process.env.NEXT_PUBLIC_WEBHOOK_SECRET!;
+  const webhook = process.env.WEBHOOK_SECRET!;
 
   const [numClicked, setNumClicked] = useState(0);
   const [owned, setOwned] = useState(false);
@@ -102,53 +102,58 @@ export default function Home() {
     );
   };
 
-  const isNewData = (existingData: any[], newData: { queueId: any; status: any; toAddress:string }) => {
-    if(newData.toAddress === backendWalletAddress){
-      return !existingData.some((item) => 
-        item.queueId === newData.queueId && item.status === newData.status
+  const isNewData = (
+    existingData: any[],
+    newData: { queueId: any; status: any; toAddress: string }
+  ) => {
+    if (newData.toAddress === backendWalletAddress) {
+      return !existingData.some(
+        (item) =>
+          item.queueId === newData.queueId && item.status === newData.status
       );
     }
-   
   };
 
   useEffect(() => {
     const fetchWebhookData = async () => {
-      try {
-        const timestamp = Math.floor(Date.now() / 1000);
-        const signature = await generateSignature(
-          "",
-          timestamp.toString(),
-          webhook
-        );
-        const response = await fetch("/api/webhook", {
-          method: "GET",
-          // headers: {
-          //   "Content-Type": "application/json",
-          //   "x-engine-signature": signature,
-          //   "x-engine-timestamp": timestamp.toString(),
-          // },
-        });
-        const result = await response.json();
-
-        if (result && result.toAddress === backendWalletAddress) {
-          setData((prevData) => {
-            if (firstRunRef.current) {
-              firstRunRef.current = false;
-              return [result];
-            } else {
-              console.log("checking for new data");
-              if (isNewData(prevData, result)) {
-                console.log("new data found, appending");
-                return [...prevData, result];
-              } else {
-                console.log("data already exists, not appending");
-                return prevData;
-              }
-            }
+      if (account) {
+        try {
+          const timestamp = Math.floor(Date.now() / 1000);
+          const signature = await generateSignature(
+            "",
+            timestamp.toString(),
+            webhook
+          );
+          const response = await fetch("/api/webhook", {
+            method: "GET",
+            // headers: {
+            //   "Content-Type": "application/json",
+            //   "x-engine-signature": signature,
+            //   "x-engine-timestamp": timestamp.toString(),
+            // },
           });
+          const result = await response.json();
+
+          if (result && result.toAddress === backendWalletAddress) {
+            setData((prevData) => {
+              if (firstRunRef.current) {
+                firstRunRef.current = false;
+                return [result];
+              } else {
+                console.log("checking for new data");
+                if (isNewData(prevData, result)) {
+                  console.log("new data found, appending");
+                  return [...prevData, result];
+                } else {
+                  console.log("data already exists, not appending");
+                  return prevData;
+                }
+              }
+            });
+          }
+        } catch (err: any) {
+          setError(err.message);
         }
-      } catch (err: any) {
-        setError(err.message);
       }
     };
 
@@ -171,43 +176,56 @@ export default function Home() {
     }
   }, [numClicked]);
   return (
-    <div>
-      <ConnectButton client={clientKey} />
+    <div className="flex-row pl-2 justify-center items-center min-w-full">
+      <div className="flex justify-center pt-10">
+        <ConnectButton client={clientKey} />
+      </div>
 
-      {owned ? (
+      {account && (
         <div>
-          <div>Tokens Owned: {erc20Tokens}</div>
+          {owned ? (
+        <div className="">
+          Click anywhere in the highlighted are to earn tokens!
           <div
-            className="flex-row pt-20 bg-slate-600"
+            className="flex-row py-10 bg-slate-600"
             onClick={() => increment()}
           >
             <div>
+              Here is your Access Pass!
               <MediaRenderer client={clientKey} src={nft}></MediaRenderer>
             </div>
           </div>
           <div>
             <div>
-            <div className="pt-12">Number of times clicked:{numClicked}</div>
+              <div>Tokens Owned: {erc20Tokens}</div>
+              <div className="pt-12">Number of times clicked:{numClicked}</div>
               <button
+                className=" bg-blue-600 rounded-md p-3"
                 onClick={() => {
                   getERC20TokenBalence();
                   setNumClicked(0);
                 }}
               >
-                Reset Count
+                Reset/View Updated Tokens
               </button>
             </div>
-
           </div>
         </div>
       ) : (
-        <div>
-          <button onClick={() => mint()}>Mint your pass</button>
+        <div className="flex pt-5 justify-center">
+          <button className="bg-blue-600 rounded-md p-3" onClick={() => mint()}>
+            Mint your pass
+          </button>
         </div>
       )}
 
-      <div className="pt-10 text-xl">Transactions List (Polls Every Second): </div>
+      <div className="pt-10 text-xl">
+        Transactions List (Polls Every Second):{" "}
+      </div>
       {data.length > 0 ? <TwoColumnTable data={data} /> : <div></div>}
+        </div>
+      )}
+      
     </div>
   );
 }
