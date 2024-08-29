@@ -17,6 +17,7 @@ export default function Home() {
   const tokenAddress = process.env.NEXT_PUBLIC_ERC_20_TOKEN_ADDRESS;
   const backendWalletAddress = process.env.NEXT_PUBLIC_ENGINE_BACKEND_WALLET!;
   const engingAccessToken = process.env.ENGINE_ACCESS_TOKEN!;
+  
   const engineURL = process.env.NEXT_PUBLIC_ENGINE_URL!;
   const webhook = process.env.WEBHOOK_SECRET!;
 
@@ -29,6 +30,7 @@ export default function Home() {
   const firstRunRef = useRef(true);
   const [error, setError] = useState(null);
 
+  console.log("Engine Access Token:", engingAccessToken);
   const increment = () => {
     let num = numClicked;
     num++;
