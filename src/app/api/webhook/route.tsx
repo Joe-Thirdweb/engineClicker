@@ -3,7 +3,7 @@
 import { isValidSignature, isExpired } from "../../../lib/webhookhelper"; // Adjust the import path as necessary
 import { NextRequest, NextResponse } from "next/server";
 
-const WEBHOOK_SECRET = process.env.NEXT_PUBLIC_WEBHOOK_SECRET!;
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET!;
 const webhookPayloads: any[] = [];
 
 export async function GET() {
