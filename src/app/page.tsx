@@ -93,7 +93,7 @@ export default function Home() {
 
   const isNewData = (existingData: any[], newData: { queueId: any; status: any; fromAddress: string }): boolean => {
     // First, check if the fromAddress matches backendWalletAddress
-    if (newData.fromAddress !== backendWalletAddress) {
+    if (newData.fromAddress.toLowerCase() !== backendWalletAddress.toLowerCase()) {
       return false;
     }
   
