@@ -119,6 +119,8 @@ export default function Home() {
           });
           const result = await response.json();
           console.log(result)
+          console.log(result.toAddress)
+          console.log(result.toAddress === backendWalletAddress)
 
           if (result && result.toAddress === backendWalletAddress) {
             setData((prevData) => {
