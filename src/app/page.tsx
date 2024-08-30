@@ -121,6 +121,8 @@ export default function Home() {
           });
           const result = await response.json();
 
+          console.log(result)
+
 
           if (result && result.fromAddress == backendWalletAddress && (result.toAddress == tokenAddress || result.toAddress == nftDropContractAddress)) {
             setData((prevData) => {
