@@ -91,13 +91,19 @@ export default function Home() {
     }
   };
 
-  const isNewData = (existingData: any[], newData: { queueId: any; status: any; fromAddress: string }) => {
-    if (newData.fromAddress === backendWalletAddress) {
-      return !existingData.some(
-        (item) =>
-          item.queueId === newData.queueId && item.status === newData.status 
-      );
+  const isNewData = (existingData: any[], newData: { queueId: any; status: any; fromAddress: string }): boolean => {
+    // First, check if the fromAddress matches backendWalletAddress
+    if (newData.fromAddress !== backendWalletAddress) {
+      return false; // or true, depending on your requirements for non-matching addresses
     }
+  
+    // Then, check if there's any existing data with the same queueId and status
+    const isDuplicate = existingData.some(
+      (item) => item.queueId === newData.queueId && item.status === newData.status
+    );
+  
+    // Return true if it's not a duplicate (i.e., it's new data)
+    return !isDuplicate;
   };
 
   useEffect(() => {
