@@ -134,19 +134,47 @@ export default function Home() {
 
 
           if (result && result.fromAddress.toLowerCase() == backendWalletAddress.toLowerCase() && (result.toAddress.toLowerCase() == tokenAddress.toLowerCase() || result.toAddress.toLowerCase() == nftDropContractAddress.toLowerCase())) {
-            setData((prevData) => {
+            // setData((prevData) => {
+            //   if (firstRunRef.current) {
+            //     firstRunRef.current = false;
+            //     return [result];
+            //   } 
+            //   else {
+            //     console.log("checking for new data");
+            //     if (isNewData(prevData, result)) {
+            //       console.log("new data found, appending");
+            //       return [...prevData, result];
+            //     } else {
+            //       console.log("data already exists, not appending");
+            //       return prevData;
+            //     }
+            //   }
+            // });
+            setData((prevData:any) => {
               if (firstRunRef.current) {
                 firstRunRef.current = false;
                 return [result];
-              } 
-              else {
+              } else {
                 console.log("checking for new data");
-                if (isNewData(prevData, result)) {
+                const existingIndex = prevData.findIndex((item: { queueId: any; }) => item.queueId === result.queueId);
+                
+                if (existingIndex === -1) {
+                  // This is a completely new entry
                   console.log("new data found, appending");
                   return [...prevData, result];
                 } else {
-                  console.log("data already exists, not appending");
-                  return prevData;
+                  // An entry with this queueId already exists
+                  if (prevData[existingIndex].status !== result.status) {
+                    // The status has changed, update the existing entry
+                    console.log("status changed, updating existing entry");
+                    const updatedData = [...prevData];
+                    updatedData[existingIndex] = { ...updatedData[existingIndex], ...result };
+                    return updatedData;
+                  } else {
+                    // The entry exists and the status hasn't changed
+                    console.log("data already exists with same status, not updating");
+                    return prevData;
+                  }
                 }
               }
             });
