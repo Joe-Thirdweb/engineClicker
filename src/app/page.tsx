@@ -91,11 +91,11 @@ export default function Home() {
     }
   };
 
-  const isNewData = (existingData: any[], newData: { queueId: any; status: any; toAddress: string }) => {
-    if (newData.toAddress === backendWalletAddress) {
+  const isNewData = (existingData: any[], newData: { queueId: any; status: any; fromAddress: string }) => {
+    if (newData.fromAddress === backendWalletAddress) {
       return !existingData.some(
         (item) =>
-          item.queueId === newData.queueId && item.status === newData.status
+          item.queueId === newData.queueId && item.status === newData.status 
       );
     }
   };
