@@ -14,6 +14,8 @@ export default function Home() {
   const backendWalletAddress = process.env.NEXT_PUBLIC_ENGINE_BACKEND_WALLET!;
   const engingAccessToken = process.env.ENGINE_ACCESS_TOKEN!;
   const tokenAddress = process.env.NEXT_PUBLIC_ERC_20_TOKEN_ADDRESS;
+  const nftDropContractAddress = process.env.NEXT_PUBLIC_NFT_DROP_CONTRACT_ADDRESS;
+
 
 
   const [numClicked, setNumClicked] = useState(0);
@@ -120,7 +122,7 @@ export default function Home() {
           });
           const result = await response.json();
 
-          if (result && result.fromAddress === backendWalletAddress && result.toAddress === tokenAddress) {
+          if (result && result.fromAddress === backendWalletAddress && (result.toAddress === tokenAddress || result.toAddress === nftDropContractAddress)) {
             setData((prevData) => {
               if (firstRunRef.current) {
                 firstRunRef.current = false;
