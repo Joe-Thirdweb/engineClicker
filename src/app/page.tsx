@@ -135,15 +135,19 @@ export default function Home() {
               if (firstRunRef.current) {
                 firstRunRef.current = false;
                 return [result];
-              } else {
-                console.log("checking for new data");
-                if (isNewData(prevData, result)) {
-                  console.log("new data found, appending");
-                  return [...prevData, result];
-                } else {
-                  console.log("data already exists, not appending");
-                  return prevData;
-                }
+              } 
+              // else {
+              //   console.log("checking for new data");
+              //   if (isNewData(prevData, result)) {
+              //     console.log("new data found, appending");
+              //     return [...prevData, result];
+              //   } else {
+              //     console.log("data already exists, not appending");
+              //     return prevData;
+              //   }
+              // }
+              else{
+                return [...prevData, result];
               }
             });
           }
