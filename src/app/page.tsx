@@ -120,13 +120,9 @@ export default function Home() {
             // },
           });
           const result = await response.json();
-          console.log(result)
-          console.log(result.toAddress)
-          console.log(result.toAddress === tokenAddress)
-          console.log(result.fromAddress === nftDropContractAddress)
 
 
-          if (result && result.fromAddress === backendWalletAddress && (result.toAddress === tokenAddress || result.toAddress === nftDropContractAddress)) {
+          if (result && result.fromAddress == backendWalletAddress && (result.toAddress == tokenAddress || result.toAddress == nftDropContractAddress)) {
             setData((prevData) => {
               if (firstRunRef.current) {
                 firstRunRef.current = false;
