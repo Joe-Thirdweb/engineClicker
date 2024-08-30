@@ -145,11 +145,11 @@ export default function Home() {
     fetchWebhookData()
 
     // Fetch data every 10 seconds
-    const intervalId = setInterval(fetchWebhookData, 10000);
+    const intervalId = setInterval(fetchWebhookData, 1000);
 
     // Clean up on component unmount
     return () => clearInterval(intervalId);
-  }, []);
+  }, [account]);
 
   useEffect(() => {
     if (account) {
