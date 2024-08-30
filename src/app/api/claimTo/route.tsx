@@ -13,7 +13,7 @@ export async function POST(req: { json: () => PromiseLike<{ address: any; }> | {
     const response = await fetch(
       `${engineURL}contract/${chainID}/${tokenAddress}/erc20/claim-to`,
       {
-        method:'POST',
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           authorization: `Bearer ${engingAccessToken}`,
