@@ -94,17 +94,20 @@ export default function Home() {
   const isNewData = (existingData: any[], newData: { queueId: any; status: any; fromAddress: string }): boolean => {
     // First, check if the fromAddress matches backendWalletAddress
     if (newData.fromAddress !== backendWalletAddress) {
-      return false; // or true, depending on your requirements for non-matching addresses
+      return false;
     }
   
-    // Then, check if there's any existing data with the same queueId and status
-    const isDuplicate = existingData.some(
-      (item) => item.queueId === newData.queueId && item.status === newData.status
-    );
+    // Check if there's any existing data with the same queueId
+    const existingItem = existingData.find(item => item.queueId === newData.queueId);
   
-    // Return true if it's not a duplicate (i.e., it's new data)
-    return !isDuplicate;
-  };
+    if (!existingItem) {
+      // If no item with this queueId exists, it's new data
+      return true;
+    }
+  
+    // If an item with this queueId exists, check if the status has changed
+    return existingItem.status !== newData.status;
+};
 
   useEffect(() => {
     const fetchWebhookData = async () => {
