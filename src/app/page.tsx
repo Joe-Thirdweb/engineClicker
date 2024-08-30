@@ -30,37 +30,30 @@ export default function Home() {
   const firstRunRef = useRef(true);
   const [error, setError] = useState(null);
 
-  console.log("Engine Access Token:", engingAccessToken);
-  const increment = () => {
+  const increment = async () => {
     let num = numClicked;
     num++;
     setNumClicked(num);
 
-    fetch(`${engineURL}contract/${chainID}/${tokenAddress}/erc20/claim-to`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        authorization: `Bearer ${engingAccessToken}`,
-        "x-backend-wallet-address": backendWalletAddress,
-      },
+    const response = await fetch('/api/claimTo',{
+      method:'POST',
       body: JSON.stringify({
-        recipient: account?.address!,
-        amount: "1",
-      }),
-    });
+        address:account!.address,
+      })
+    })
   };
 
   const fetchGatedBalance = async () => {
-    const resp = await fetch(
-      `${engineURL}contract/${chainID}/${nftDropContractAddress}/erc1155/get-owned?walletAddress=${account?.address}`,
-      {
-        headers: {
-          authorization: `Bearer ${engingAccessToken}`,
-        },
-      }
-    );
+    const resp = await fetch('/api/gatedBalance', {
+      method: 'POST',
+      body: JSON.stringify({
+        address:account!.address,
+      })
+    })
 
-    const { result } = await resp.json();
+    const data = await resp.json();
+    const result = data.result
+
     if (result && result.length > 0) {
       setOwned(true);
       setNFT(result[0].metadata.image);
@@ -70,24 +63,22 @@ export default function Home() {
   };
 
   const getERC20TokenBalence = async () => {
-    const resp = await fetch(
-      `${engineURL}contract/${chainID}/${tokenAddress}/erc20/balance-of?wallet_address=${account?.address}`,
-      {
-        headers: {
-          authorization: `Bearer ${engingAccessToken}`,
-        },
-      }
-    );
-    const { result } = await resp.json();
+    const resp = await fetch('/api/erc20balance', {
+      method: 'POST',
+      body: JSON.stringify({
+        address:account!.address,
+      })
+    })
+    const {data} = await resp.json();
 
+    const result = data.result
     if (result) {
       setERC20Tokens(result.displayValue);
     }
   };
 
   const mint = async () => {
-    const resp = await fetch(
-      `${engineURL}contract/${chainID}/${nftDropContractAddress}/erc1155/claim-to`,
+    const resp = await fetch(`/api/mintPass`,
       {
         method: "POST",
         headers: {
@@ -96,18 +87,20 @@ export default function Home() {
           "x-backend-wallet-address": `${backendWalletAddress}`,
         },
         body: JSON.stringify({
-          receiver: account?.address!,
-          tokenId: "0",
-          quantity: "1",
+          address:account!.address
         }),
       }
     );
+
+    const {data} = await resp.json();
+    const result = data.result
+
+    if(result){
+      fetchGatedBalance()
+    }
   };
 
-  const isNewData = (
-    existingData: any[],
-    newData: { queueId: any; status: any; toAddress: string }
-  ) => {
+  const isNewData = (existingData: any[], newData: { queueId: any; status: any; toAddress: string }) => {
     if (newData.toAddress === backendWalletAddress) {
       return !existingData.some(
         (item) =>
@@ -118,14 +111,19 @@ export default function Home() {
 
   useEffect(() => {
     const fetchWebhookData = async () => {
+      console.log("Fetching")
+      console.log(account)
       if (account) {
+        console.log("in account")
         try {
-          const timestamp = Math.floor(Date.now() / 1000);
-          const signature = await generateSignature(
-            "",
-            timestamp.toString(),
-            webhook
-          );
+          console.log("in try")
+
+          // const timestamp = Math.floor(Date.now() / 1000);
+          // const signature = await generateSignature(
+          //   "",
+          //   timestamp.toString(),
+          //   webhook
+          // );
           const response = await fetch("/api/webhook", {
             method: "GET",
             // headers: {
@@ -160,7 +158,7 @@ export default function Home() {
     };
 
     // Fetch data every 10 seconds
-    const intervalId = setInterval(fetchWebhookData, 1000);
+    const intervalId = setInterval(fetchWebhookData, 10000);
 
     // Clean up on component unmount
     return () => clearInterval(intervalId);
@@ -169,6 +167,7 @@ export default function Home() {
   useEffect(() => {
     if (account) {
       fetchGatedBalance();
+      getERC20TokenBalence();
     }
   });
 
