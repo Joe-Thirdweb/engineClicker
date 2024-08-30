@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest) {
-  const { address } = await req.json();
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const address = searchParams.get('address');
 
   const engineURL = process.env.ENGINE_URL;
   const tokenAddress = process.env.NEXT_PUBLIC_ERC_20_TOKEN_ADDRESS;
@@ -12,6 +13,7 @@ export async function POST(req: NextRequest) {
     const response = await fetch(
         `${engineURL}contract/${chainID}/${tokenAddress}/erc20/balance-of?wallet_address=${address}`,
         {
+          method:"GET",
           headers: {
             authorization: `Bearer ${engingAccessToken}`,
           },

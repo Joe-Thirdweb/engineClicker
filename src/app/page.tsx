@@ -39,11 +39,8 @@ export default function Home() {
   };
 
   const fetchGatedBalance = async () => {
-    const resp = await fetch('/api/gatedBalance', {
-      method: 'POST',
-      body: JSON.stringify({
-        address:account!.address,
-      })
+    const resp = await fetch(`/api/gatedBalance?address=${account!.address}`, {
+      method: 'GET',
     })
 
     const data = await resp.json();
@@ -58,11 +55,8 @@ export default function Home() {
   };
 
   const getERC20TokenBalence = async () => {
-    const resp = await fetch('/api/erc20balance', {
-      method: 'POST',
-      body: JSON.stringify({
-        address:account!.address,
-      })
+    const resp = await fetch(`/api/erc20balance?address=${account!.address}`, {
+      method: 'GET',
     })
     const {data} = await resp.json();
 
