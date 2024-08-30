@@ -13,7 +13,8 @@ export default function Home() {
 
   const backendWalletAddress = process.env.NEXT_PUBLIC_ENGINE_BACKEND_WALLET!;
   const engingAccessToken = process.env.ENGINE_ACCESS_TOKEN!;
-  
+  const tokenAddress = process.env.NEXT_PUBLIC_ERC_20_TOKEN_ADDRESS;
+
 
   const [numClicked, setNumClicked] = useState(0);
   const [owned, setOwned] = useState(false);
@@ -118,11 +119,8 @@ export default function Home() {
             // },
           });
           const result = await response.json();
-          console.log(result)
-          console.log(result.toAddress)
-          console.log(result.toAddress === backendWalletAddress)
 
-          if (result && result.toAddress === backendWalletAddress) {
+          if (result && result.fromAddress === backendWalletAddress && result.toAddress === tokenAddress) {
             setData((prevData) => {
               if (firstRunRef.current) {
                 firstRunRef.current = false;
@@ -217,8 +215,6 @@ export default function Home() {
 }
 
 const TwoColumnTable = (data: any) => {
-  console.log(data);
-  console.log(typeof data);
 
   return (
     <div className="overflow-x-auto">
