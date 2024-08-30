@@ -7,16 +7,24 @@ export async function POST(req: { json: () => PromiseLike<{ address: any; }> | {
   const tokenAddress = process.env.NEXT_PUBLIC_ERC_20_TOKEN_ADDRESS;
   const chainID = process.env.NEXT_PUBLIC_CHAIN;
   const engingAccessToken = process.env.ENGINE_ACCESS_TOKEN;
+  const backendWalletAddress = process.env.NEXT_PUBLIC_ENGINE_BACKEND_WALLET;
 
   try {
     const response = await fetch(
-      `${engineURL}contract/${chainID}/${tokenAddress}/erc20/balance-of?wallet_address=${address}`,
+      `${engineURL}contract/${chainID}/${tokenAddress}/erc20/claim-to`,
       {
+        method:'POST',
         headers: {
+          "Content-Type": "application/json",
           authorization: `Bearer ${engingAccessToken}`,
+          "x-backend-wallet-address": `${backendWalletAddress}`,
         },
+        body: JSON.stringify({
+          recipient: address,
+          amount: "1",
+        }),
       }
-    );
+    )
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

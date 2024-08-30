@@ -4,22 +4,16 @@ import { ConnectButton, MediaRenderer, useActiveAccount } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { useDebugValue, useEffect, useRef, useState } from "react";
 
-import { generateSignature } from "../lib/webhookhelper";
 
 export default function Home() {
   const clientKey = createThirdwebClient({
     clientId: process.env.NEXT_PUBLIC_CLIENT_ID!,
   });
   const account = useActiveAccount();
-  const chainID = process.env.NEXT_PUBLIC_CHAIN!;
-  const nftDropContractAddress =
-    process.env.NEXT_PUBLIC_NFT_DRROP_CONTRACT_ADDRESS!;
-  const tokenAddress = process.env.NEXT_PUBLIC_ERC_20_TOKEN_ADDRESS;
+
   const backendWalletAddress = process.env.NEXT_PUBLIC_ENGINE_BACKEND_WALLET!;
   const engingAccessToken = process.env.ENGINE_ACCESS_TOKEN!;
   
-  const engineURL = process.env.NEXT_PUBLIC_ENGINE_URL!;
-  const webhook = process.env.WEBHOOK_SECRET!;
 
   const [numClicked, setNumClicked] = useState(0);
   const [owned, setOwned] = useState(false);
@@ -41,6 +35,7 @@ export default function Home() {
         address:account!.address,
       })
     })
+
   };
 
   const fetchGatedBalance = async () => {
@@ -111,19 +106,15 @@ export default function Home() {
 
   useEffect(() => {
     const fetchWebhookData = async () => {
-      console.log("Fetching")
-      console.log(account)
       if (account) {
-        console.log("in account")
         try {
-          console.log("in try")
 
           // const timestamp = Math.floor(Date.now() / 1000);
           // const signature = await generateSignature(
           //   "",
           //   timestamp.toString(),
           //   webhook
-          // );
+          // ); 
           const response = await fetch("/api/webhook", {
             method: "GET",
             // headers: {
@@ -157,6 +148,8 @@ export default function Home() {
       }
     };
 
+    fetchWebhookData()
+
     // Fetch data every 10 seconds
     const intervalId = setInterval(fetchWebhookData, 10000);
 
@@ -169,13 +162,8 @@ export default function Home() {
       fetchGatedBalance();
       getERC20TokenBalence();
     }
-  });
+  },[account]);
 
-  useEffect(() => {
-    if (account) {
-      getERC20TokenBalence();
-    }
-  }, [numClicked]);
   return (
     <div className="flex-row pl-2 justify-center items-center min-w-full">
       <div className="flex justify-center pt-10">
